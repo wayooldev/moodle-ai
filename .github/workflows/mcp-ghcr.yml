@@ -1,0 +1,39 @@
+name: Build and push MCP image to GHCR
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mcp/**"
+      - "packages/db/**"
+      - "package.json"
+      - ".github/workflows/mcp-ghcr.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set image name
+        id: meta
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER}/moodle-ai-mcp" >> "$GITHUB_OUTPUT"
+          echo "tags=ghcr.io/${GITHUB_REPOSITORY_OWNER}/moodle-ai-mcp:latest,ghcr.io/${GITHUB_REPOSITORY_OWNER}/moodle-ai-mcp:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/mcp/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}

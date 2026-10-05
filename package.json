@@ -1,0 +1,19 @@
+{
+  "name": "moodle-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Moodle / Open LMS AI bridge: web app + MCP server with Alexa+ OAuth linking",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:mcp": "npm run start -w @moodle-ai/mcp",
+    "dev:web": "npm run dev -w @moodle-ai/web",
+    "build:web": "npm run build -w @moodle-ai/web",
+    "start:mcp": "npm run start -w @moodle-ai/mcp"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

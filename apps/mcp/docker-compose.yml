@@ -1,0 +1,40 @@
+services:
+  moodle-ai-mcp:
+    image: ghcr.io/wayooldev/moodle-ai-mcp:latest
+    container_name: moodle_ai_mcp
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT:-3000}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - moodle_ai_net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: moodle_ai_tunnel
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      moodle-ai-mcp:
+        condition: service_healthy
+    networks:
+      - moodle_ai_net
+
+networks:
+  moodle_ai_net:
+    driver: bridge
