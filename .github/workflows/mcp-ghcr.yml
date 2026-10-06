@@ -6,7 +6,10 @@ on:
     paths:
       - "apps/mcp/**"
       - "packages/db/**"
+      - "packages/moodle/**"
+      - "packages/ops/**"
       - "package.json"
+      - "package-lock.json"
       - ".github/workflows/mcp-ghcr.yml"
   workflow_dispatch:
 

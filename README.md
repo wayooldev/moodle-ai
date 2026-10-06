@@ -21,9 +21,11 @@ No uses `vercel deploy` CLI para producción. El project Vercel está ligado a `
 ## Monorepo
 
 ```
-apps/web     Next.js → Vercel via GitHub (Clerk, dashboard BYOK, consent Alexa)
-apps/mcp     Express MCP + OAuth AS → VPS vía GHCR
-packages/db  Postgres helpers + cifrado AES-GCM
+apps/web       Next.js → Vercel via GitHub (landing, onboarding, LMS dashboard, chat Gemini, Alexa consent)
+apps/mcp       Express MCP + OAuth AS → VPS vía GHCR
+packages/db    Postgres helpers + cifrado AES-GCM
+packages/moodle Cliente Moodle/Open LMS compartido (site/courses/assignments/calendar)
+packages/ops   Scrubber Sentry + rate limit Upstash helpers
 ```
 
 ## Qué ya existe
@@ -49,6 +51,9 @@ packages/db  Postgres helpers + cifrado AES-GCM
    - `PUBLIC_BASE_URL` (MCP público, ej. `https://mcp-lms.wayool.com`)
    - `WEB_APP_URL` / `NEXT_PUBLIC_*` Clerk keys
    - `MCP_BASE_URL`, `INTERNAL_API_KEY` en web (para create-code)
+   - Opcional P0: `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+   - Chat: `GOOGLE_GENERATIVE_AI_API_KEY` (Google AI Studio; modelo free-tier `gemini-3.5-flash-lite`)
+   - Observabilidad chat (opcional): `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_BASE_URL`
 3. `npm install` en la raíz
 4. Clerk: crea aplicación **moodle-ai** en https://dashboard.clerk.com y pega keys en Vercel Project Settings → Environment Variables (Production + Preview)
 5. Seed cliente Alexa (cuando tengas client_id/secret del add-on):
@@ -56,6 +61,39 @@ packages/db  Postgres helpers + cifrado AES-GCM
 ```bash
 DATABASE_URL=... node scripts/seed-alexa-client.mjs <client_id> <client_secret> <redirect_uri>
 ```
+
+## Calidad (lint / tests / e2e)
+
+```bash
+npm run lint
+npm run typecheck
+npm test                 # Vitest (ver tests/README.md)
+npm run test:e2e:install # Chromium para Playwright (una vez)
+npm run test:e2e:list    # lista Playwright
+npm run test:e2e         # requiere secrets E2E_CLERK_* (si faltan, specs hacen skip)
+```
+
+CI: `.github/workflows/quality.yml` corre lint, typecheck, Vitest y build web en PRs a `dev`/`main`. El job e2e solo ejecuta browsers si existen secrets `E2E_CLERK_*`; si no, hace `--list` y sale 0.
+
+### Playwright / Clerk
+
+Secrets locales o GitHub Actions:
+
+- `E2E_CLERK_PUBLISHABLE_KEY`, `E2E_CLERK_SECRET_KEY`
+- `E2E_CLERK_USER_USERNAME`, `E2E_CLERK_USER_PASSWORD` (usuario de prueba)
+- Smoke Alexa consent (opcional, linking aún incompleto): `ALEXA_E2E_SMOKE=1`
+
+Sin esos secrets, los e2e autenticados y el smoke Alexa quedan en **skip** a propósito.
+
+### Secrets de producción (checklist)
+
+| Dónde | Variables |
+|---|---|
+| Vercel (web) | Clerk, `DATABASE_URL`, `TOKEN_ENCRYPTION_KEY`, `MCP_BASE_URL`, `INTERNAL_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, Langfuse (opc.), `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, Upstash |
+| VPS MCP | `DATABASE_URL`, `TOKEN_ENCRYPTION_KEY`, `MCP_API_KEY`, Moodle, `PUBLIC_BASE_URL`, `WEB_APP_URL`, `SENTRY_DSN`, Upstash |
+| GitHub Actions | `E2E_CLERK_*` (opcionales para e2e real) |
+
+Nunca commits de `.env` / valores reales.
 
 ## Deploy
 

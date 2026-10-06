@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
-import Link from "next/link";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Figtree, Syne } from "next/font/google";
+import { Providers } from "@/components/providers";
+import { SiteHeader } from "@/components/site-header";
+import "@/env";
 import "./globals.css";
+
+const display = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
+const body = Figtree({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
 
 export const metadata: Metadata = {
   title: "Moodle AI",
-  description: "Connect Open LMS to Cursor and Alexa+",
+  description:
+    "Tu campus Moodle en un solo lugar: cursos, entregas, calendario y asistente académico.",
 };
 
 export default function RootLayout({
@@ -20,24 +27,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
-      <html lang="es">
+      <html lang="es" className={`${display.variable} ${body.variable}`}>
         <body>
-          <header className="topbar">
-            <Link href="/" className="brand">
-              Moodle AI
-            </Link>
-            <nav>
-              <SignedOut>
-                <SignInButton mode="modal" />
-                <SignUpButton mode="modal" />
-              </SignedOut>
-              <SignedIn>
-                <Link href="/dashboard">Dashboard</Link>
-                <UserButton />
-              </SignedIn>
-            </nav>
-          </header>
-          <main>{children}</main>
+          <Providers>
+            <SiteHeader />
+            <main>{children}</main>
+          </Providers>
         </body>
       </html>
     </ClerkProvider>

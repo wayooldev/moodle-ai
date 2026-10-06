@@ -13,6 +13,11 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@moodle-ai/db": "*",
+    "@moodle-ai/moodle": "^0.1.0",
+    "@moodle-ai/ops": "*",
+    "@sentry/node": "^11.4.0",
+    "@upstash/ratelimit": "^2.2.0",
+    "@upstash/redis": "^1.39.0",
     "axios": "^1.12.2",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",

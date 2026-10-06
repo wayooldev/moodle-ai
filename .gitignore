@@ -10,5 +10,7 @@ dist/
 .DS_Store
 coverage/
 .playwright-mcp/
+*.tsbuildinfo
+.cursor/
 apps/mcp/.env
 apps/web/.env*

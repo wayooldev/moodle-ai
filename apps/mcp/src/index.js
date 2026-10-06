@@ -7,14 +7,23 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { requireMcpAuth } from "./auth.js";
+import { loadMcpEnv } from "./env.js";
 import { mountOauthRoutes } from "./oauth.js";
+import { rateLimitMcpEntry } from "./ratelimit.js";
+import { initMcpSentry, Sentry } from "./sentry.js";
 
-const PORT = Number(process.env.PORT || 3000);
-
-if (!process.env.MCP_API_KEY) {
-  console.error("MCP_API_KEY is required");
+let mcpEnv;
+try {
+  mcpEnv = loadMcpEnv();
+} catch (err) {
+  console.error("Invalid MCP environment:", err?.message || err);
   process.exit(1);
 }
+
+initMcpSentry();
+
+const PORT = mcpEnv.PORT;
+const mcpRateLimit = rateLimitMcpEntry();
 
 const legacySseTransports = new Map();
 const streamableSessions = new Map();
@@ -77,7 +86,7 @@ function createMcpServer(moodle) {
 
   server.tool(
     "get_user_assignments",
-    "Get assignment activities for one or more courses",
+    "Get assignment activities for one or more courses (normalized with duedate)",
     {
       courseids: z
         .array(z.number().int().positive())
@@ -85,7 +94,30 @@ function createMcpServer(moodle) {
         .describe("List of Moodle course ids"),
     },
     async ({ courseids }) => {
-      const data = await moodle.getUserAssignments(courseids);
+      const data = await moodle.getAssignmentsNormalized(courseids);
+      return {
+        content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "get_calendar_events",
+    "Get calendar or action events between two unix timestamps (best-effort)",
+    {
+      timestart: z
+        .number()
+        .int()
+        .optional()
+        .describe("Unix start time; defaults to 7 days ago"),
+      timeend: z
+        .number()
+        .int()
+        .optional()
+        .describe("Unix end time; defaults to ~60 days from start"),
+    },
+    async ({ timestart, timeend }) => {
+      const data = await moodle.getCalendarEvents({ timestart, timeend });
       return {
         content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
       };
@@ -124,7 +156,7 @@ app.post("/sse", (_req, res) => {
   });
 });
 
-app.get("/sse", requireMcpAuth, async (req, res) => {
+app.get("/sse", requireMcpAuth, mcpRateLimit, async (req, res) => {
   try {
     const transport = new SSEServerTransport("/messages", res);
     legacySseTransports.set(transport.sessionId, transport);
@@ -141,7 +173,7 @@ app.get("/sse", requireMcpAuth, async (req, res) => {
   }
 });
 
-app.post("/messages", requireMcpAuth, async (req, res) => {
+app.post("/messages", requireMcpAuth, mcpRateLimit, async (req, res) => {
   const sessionId = req.query.sessionId;
   if (typeof sessionId !== "string" || !sessionId) {
     res.status(400).json({ error: "Missing sessionId" });
@@ -240,9 +272,17 @@ async function handleStreamableMcpSession(req, res) {
   }
 }
 
-app.post("/mcp", requireMcpAuth, handleStreamableMcpPost);
-app.get("/mcp", requireMcpAuth, handleStreamableMcpSession);
-app.delete("/mcp", requireMcpAuth, handleStreamableMcpSession);
+app.post("/mcp", requireMcpAuth, mcpRateLimit, handleStreamableMcpPost);
+app.get("/mcp", requireMcpAuth, mcpRateLimit, handleStreamableMcpSession);
+app.delete("/mcp", requireMcpAuth, mcpRateLimit, handleStreamableMcpSession);
+
+app.use((err, _req, res, _next) => {
+  console.error("Unhandled MCP error", err);
+  Sentry.captureException?.(err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(
