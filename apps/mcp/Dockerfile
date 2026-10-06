@@ -4,8 +4,10 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY packages/db/package.json ./packages/db/
+COPY packages/moodle/package.json ./packages/moodle/
+COPY packages/ops/package.json ./packages/ops/
 COPY apps/mcp/package.json ./apps/mcp/
-RUN npm install --omit=dev -w @moodle-ai/mcp -w @moodle-ai/db
+RUN npm install --omit=dev -w @moodle-ai/mcp -w @moodle-ai/db -w @moodle-ai/moodle -w @moodle-ai/ops
 
 FROM node:20-alpine
 WORKDIR /app
@@ -13,6 +15,8 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 COPY packages/db ./packages/db
+COPY packages/moodle ./packages/moodle
+COPY packages/ops ./packages/ops
 COPY apps/mcp ./apps/mcp
 USER node
 EXPOSE 3000

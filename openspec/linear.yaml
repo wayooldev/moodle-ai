@@ -1,0 +1,13 @@
+team:
+  id: "918d1d41-95ee-429a-976f-e380f65feb8b"
+  key: "WAY"
+  name: "Wayool"
+project:
+  id: "31c49b7c-a525-4e58-aeff-d1125d9ae3f8"
+  name: "moodle-ai"
+issue_label_filter:
+  name: "MAI"
+archive_documents:
+  enabled: true
+  title_prefix: "OpenSpec:"
+  documents: {}

@@ -3,10 +3,14 @@
 import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useToast } from "@/components/toast-provider";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 function ConsentInner() {
   const params = useSearchParams();
   const { user } = useUser();
+  const toast = useToast();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -38,34 +42,54 @@ function ConsentInner() {
       if (!viaApi.ok) {
         throw new Error(data.error || "No se pudo crear el authorization code");
       }
+      toast.success("Redirigiendo…", "Vinculación aprobada");
       const url = new URL(redirectUri);
       url.searchParams.set("code", data.code);
       if (state) url.searchParams.set("state", state);
       window.location.href = url.toString();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      const message = err instanceof Error ? err.message : "Error";
+      setError(message);
+      toast.error(message, "No se pudo vincular");
       setBusy(false);
     }
   }
 
   return (
-    <section className="card">
-      <h1>Vincular Alexa+</h1>
-      <p className="muted">
-        Alexa solicita acceso a Moodle AI (<code>{clientId || "…"}</code>) con
-        scopes <code>{scope}</code>.
+    <section className="mx-auto max-w-lg px-4 py-12">
+      <h1 className="font-display text-3xl text-[var(--ink)]">
+        Vincular asistente de voz
+      </h1>
+      <p className="mt-3 text-sm text-[var(--muted)]">
+        Se solicita acceso a Moodle AI
+        {clientId ? (
+          <>
+            {" "}
+            (<code className="text-[var(--fg)]">{clientId}</code>)
+          </>
+        ) : null}
+        .
       </p>
-      <button type="button" onClick={approve} disabled={busy || !user}>
-        {busy ? "Vinculando…" : "Aprobar y volver a Alexa"}
-      </button>
-      {error ? <p className="error">{error}</p> : null}
+      <Button
+        type="button"
+        className="mt-6"
+        onClick={approve}
+        disabled={busy || !user}
+      >
+        {busy ? "Vinculando…" : "Aprobar y continuar"}
+      </Button>
+      {error ? (
+        <Alert tone="error" className="mt-4">
+          {error}
+        </Alert>
+      ) : null}
     </section>
   );
 }
 
 export default function AlexaConsentPage() {
   return (
-    <Suspense fallback={<p>Cargando…</p>}>
+    <Suspense fallback={<p className="p-8 text-[var(--muted)]">Cargando…</p>}>
       <ConsentInner />
     </Suspense>
   );

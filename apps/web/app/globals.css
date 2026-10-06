@@ -1,26 +1,67 @@
+@import "tailwindcss";
+
 :root {
-  --bg: #0f1419;
-  --fg: #e7ecf1;
-  --muted: #9aa7b5;
-  --accent: #3d8bfd;
-  --card: #1a222c;
-  --border: #2a3542;
-  font-family: "Segoe UI", system-ui, sans-serif;
+  /* Night campus: charcoal + warm copper (no teal/AI-green, no purple) */
+  --bg: #0b0e13;
+  --fg: #e8eaef;
+  --muted: #8f98a8;
+  --accent: #d4924a;
+  --accent-fg: #1a1208;
+  --accent-soft: rgba(212, 146, 74, 0.16);
+  --surface: #131821;
+  --surface-2: #1a222e;
+  --surface-3: #243041;
+  --border: #2c3545;
+  --ring: #d4924a;
+  --ink: #f2f4f7;
+  --deep: #07090d;
+  --panel: #10151d;
+  --success: #3dbe7a;
+  --success-bg: rgba(61, 190, 122, 0.12);
+  --success-border: rgba(61, 190, 122, 0.4);
+  --danger: #f07178;
+  --danger-bg: rgba(240, 113, 120, 0.12);
+  --danger-border: rgba(240, 113, 120, 0.42);
+  --hero-veil: linear-gradient(
+    105deg,
+    rgba(7, 9, 13, 0.88) 0%,
+    rgba(7, 9, 13, 0.62) 40%,
+    rgba(7, 9, 13, 0.28) 70%,
+    rgba(7, 9, 13, 0.12) 100%
+  );
+}
+
+@theme inline {
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(1200px 600px at 10% -10%, #1c2a3d, var(--bg));
+}
+
+body {
+  background:
+    radial-gradient(900px 420px at 8% -8%, rgba(212, 146, 74, 0.08), transparent 55%),
+    radial-gradient(720px 380px at 92% 0%, rgba(90, 120, 160, 0.07), transparent 50%),
+    var(--bg);
   color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
 }
 
 a {
-  color: var(--accent);
+  color: inherit;
   text-decoration: none;
 }
 
@@ -28,86 +69,35 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 
 .topbar nav {
   display: flex;
-  gap: 1rem;
+  gap: 0.65rem;
   align-items: center;
 }
 
 .brand {
-  color: var(--fg);
+  color: var(--ink);
+  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.04em;
+  font-size: 1.35rem;
 }
 
-main {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--deep);
+  color: #c5ceda;
 }
 
-.hero h1 {
-  font-size: 2.4rem;
-  margin: 0 0 0.75rem;
-}
-
-.hero p {
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem;
-  margin-top: 1.5rem;
-}
-
-label {
-  display: block;
-  margin: 0.75rem 0 0.35rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-input,
-textarea,
-button {
-  font: inherit;
-}
-
-input,
-textarea {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #121820;
-  color: var(--fg);
-}
-
-button,
-.button {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.65rem 1rem;
-  border-radius: 8px;
-  border: 0;
-  background: var(--accent);
-  color: #fff;
-  cursor: pointer;
-}
-
-.muted {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.error {
-  color: #ff8e8e;
+.site-footer a:hover {
+  color: #ffffff;
 }

@@ -1,0 +1,27 @@
+schema: spec-driven
+
+context: |
+  Language: Spanish
+  All artifacts must be written in Spanish.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Linearized ownership and archive policy:
+  - Linear issue/card is the source for business what: business goal, use cases, personas/workflows, scope, and acceptance criteria.
+  - Repo artifacts are the source for technical how: design decisions, tasks, implementation details, migrations, tests, and code.
+  - Keep proposal.md lightweight; sync its business-facing details into the Linear issue description when they change.
+  - NON-NEGOTIABLE: OpenSpec canonical specs under `openspec/specs/` are the only source of truth.
+  - Linear Project Documents are disposable mirrors only. Generic non-document Linear project resources are out of scope.
+  - Run Linear Project Document sync only after OpenSpec archive succeeds and merges delta specs into canonical spec files.
+  - Mirror documents use deterministic titles: `OpenSpec: <capability-name>`.
+  - Do not transition the bound Linear story to Done before OpenSpec archive succeeds.
+
+  Product: moodle-ai (Moodle / Open LMS AI bridge)
+  Linear: team Wayool, project moodle-ai, label MAI
+  Monorepo:
+    - apps/web: Next.js 15 + Clerk (dashboard BYOK, Alexa consent) → Vercel
+    - apps/mcp: Express MCP + OAuth 2.1 AS (Cursor X-Api-Key + Alexa Bearer) → GHCR/VPS
+    - packages/db: Postgres (Neon) helpers + AES-GCM crypto (raw `pg`, not Prisma)
+  Auth: Clerk for web; Alexa OAuth lives on MCP (authorize/token/PKCE)
+  Deploy: work on `dev`; production only via PR merge to `main`
+  Keep: Clerk, Neon/pg, Zod, Next.js, Express MCP
+  Do not add without explicit need: Prisma, Stripe, Resend, i18n, tRPC, Zustand, Biome, Effect, Inngest, Redis-as-cache

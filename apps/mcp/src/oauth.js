@@ -1,5 +1,6 @@
 import { query } from "@moodle-ai/db";
 import { randomToken, sha256Hex, verifyPkceS256 } from "./crypto.js";
+import { enforceTokenRateLimit } from "./ratelimit.js";
 
 function publicBaseUrl() {
   return (process.env.PUBLIC_BASE_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
@@ -207,6 +208,8 @@ export function mountOauthRoutes(app) {
         return;
       }
       const client = auth.client;
+      const allowed = await enforceTokenRateLimit(req, res, client.client_id);
+      if (!allowed) return;
       const grantType = body.grant_type;
 
       if (grantType === "client_credentials") {

@@ -1,5 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { env } from "@/env";
+import { enforceWriteRateLimit } from "@/lib/ratelimit";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -7,9 +9,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const limited = await enforceWriteRateLimit(req, userId);
+  if (limited) return limited;
+
   const body = await req.json();
-  const mcpBase = process.env.MCP_BASE_URL || process.env.NEXT_PUBLIC_MCP_BASE_URL;
-  const internalKey = process.env.INTERNAL_API_KEY || process.env.MCP_API_KEY;
+  const mcpBase = env.MCP_BASE_URL || env.NEXT_PUBLIC_MCP_BASE_URL;
+  const internalKey = env.INTERNAL_API_KEY || env.MCP_API_KEY;
   if (!mcpBase || !internalKey) {
     return NextResponse.json(
       { error: "MCP_BASE_URL / INTERNAL_API_KEY not configured" },

@@ -11,9 +11,23 @@
     "dev:mcp": "npm run start -w @moodle-ai/mcp",
     "dev:web": "npm run dev -w @moodle-ai/web",
     "build:web": "npm run build -w @moodle-ai/web",
-    "start:mcp": "npm run start -w @moodle-ai/mcp"
+    "start:mcp": "npm run start -w @moodle-ai/mcp",
+    "lint": "npm run lint -w @moodle-ai/web",
+    "typecheck": "npm run typecheck -w @moodle-ai/web",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:list": "playwright test --list",
+    "test:e2e:install": "playwright install chromium"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@clerk/testing": "^1.14.10",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.18.6",
+    "eslint": "^9.39.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.7"
   }
 }
